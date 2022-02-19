@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/MSEarn/go-neo4j/pkg/auth"
 )
 
 type UserRegistration struct {
@@ -16,26 +18,26 @@ type User struct {
 	Password string `json:"password,omitempty"`
 }
 
-type UserHandler struct {
-	Path           string
-	UserRepository UserRepository
-}
+func Register(
+	user UserRepository,
+	authJWT *auth.JWT,
+) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := ioutil.ReadAll(r.Body)
+		var req UserRegistration
+		_ = json.Unmarshal(body, &req)
+		reqUser := req.User
+		_ = user.RegisterUser(reqUser)
 
-func (u *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
-	var req UserRegistration
-	_ = json.Unmarshal(body, &req)
-	reqUser := req.User
-	_ = u.UserRepository.RegisterUser(reqUser)
-
-	w.WriteHeader(201)
-	w.Header().Add("Content-Type", "application/json")
-	resp := &UserRegistration{
-		User: &User{
-			Email:    reqUser.Email,
-			Username: reqUser.Username,
-		},
-	}
-	bytes, _ := json.Marshal(&resp)
-	_, _ = w.Write(bytes)
+		w.WriteHeader(201)
+		w.Header().Add("Content-Type", "application/json")
+		resp := &UserRegistration{
+			User: &User{
+				Email:    reqUser.Email,
+				Username: reqUser.Username,
+			},
+		}
+		bytes, _ := json.Marshal(&resp)
+		_, _ = w.Write(bytes)
+	})
 }

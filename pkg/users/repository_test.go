@@ -32,7 +32,7 @@ var _ = Describe("User repository", func() {
 		Expect(neo4jContainer.Terminate(ctx)).To(BeNil(), "Container should stop")
 	})
 
-	FIt("registers users", func() {
+	It("registers users", func() {
 		port, err := neo4jContainer.MappedPort(ctx, "7687")
 		Expect(err).To(BeNil(), "Port should be resolved")
 		address := fmt.Sprintf("bolt://localhost:%d", port.Int())
